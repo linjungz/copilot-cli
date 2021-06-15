@@ -121,6 +121,7 @@ func (s *BackendService) Template() (string, error) {
 	content, err := s.parser.ParseBackendService(template.WorkloadOpts{
 		Variables:           s.manifest.BackendServiceConfig.Variables,
 		Secrets:             s.manifest.BackendServiceConfig.Secrets,
+		Partition:           s.rc.Partition,
 		NestedStack:         outputs,
 		Sidecars:            sidecars,
 		Autoscaling:         autoscaling,

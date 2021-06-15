@@ -193,6 +193,7 @@ Outputs:
 				m.EXPECT().Read(desiredCountGeneratorPath).Return(&template.Content{Buffer: bytes.NewBufferString("something")}, nil)
 				m.EXPECT().Read(envControllerPath).Return(&template.Content{Buffer: bytes.NewBufferString("something")}, nil)
 				m.EXPECT().ParseLoadBalancedWebService(template.WorkloadOpts{
+					Partition:    "aws",
 					WorkloadType: manifest.LoadBalancedWebServiceType,
 					HTTPHealthCheck: template.HTTPHealthCheckOpts{
 						HealthCheckPath: "/",
@@ -223,6 +224,7 @@ Outputs:
 				m.EXPECT().Read(desiredCountGeneratorPath).Return(&template.Content{Buffer: bytes.NewBufferString("something")}, nil)
 				m.EXPECT().Read(envControllerPath).Return(&template.Content{Buffer: bytes.NewBufferString("something")}, nil)
 				m.EXPECT().ParseLoadBalancedWebService(template.WorkloadOpts{
+					Partition: "aws",
 					NestedStack: &template.WorkloadNestedStackOpts{
 						StackName:       addon.StackName,
 						VariableOutputs: []string{"Hello"},
@@ -290,6 +292,7 @@ Outputs:
 						env:  testEnvName,
 						app:  testAppName,
 						rc: RuntimeConfig{
+							Partition: "aws",
 							Image: &ECRImage{
 								RepoURL:  testImageRepoURL,
 								ImageTag: testImageTag,

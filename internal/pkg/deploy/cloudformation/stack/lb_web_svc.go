@@ -154,6 +154,7 @@ func (s *LoadBalancedWebService) Template() (string, error) {
 	content, err := s.parser.ParseLoadBalancedWebService(template.WorkloadOpts{
 		Variables:           s.manifest.Variables,
 		Secrets:             s.manifest.Secrets,
+		Partition:           s.rc.Partition,
 		Aliases:             aliases,
 		NestedStack:         outputs,
 		Sidecars:            sidecars,

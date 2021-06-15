@@ -184,6 +184,7 @@ Outputs:
 				m.EXPECT().Read(desiredCountGeneratorPath).Return(&template.Content{Buffer: bytes.NewBufferString("something")}, nil)
 				m.EXPECT().Read(envControllerPath).Return(&template.Content{Buffer: bytes.NewBufferString("something")}, nil)
 				m.EXPECT().ParseBackendService(template.WorkloadOpts{
+					Partition:    "aws",
 					WorkloadType: manifest.BackendServiceType,
 					HealthCheck: &ecs.HealthCheck{
 						Command:     aws.StringSlice([]string{"CMD-SHELL", "curl -f http://localhost/ || exit 1"}),
@@ -234,6 +235,7 @@ Outputs:
 						env:  testEnvName,
 						app:  testAppName,
 						rc: RuntimeConfig{
+							Partition: "aws",
 							Image: &ECRImage{
 								RepoURL:  testImageRepoURL,
 								ImageTag: testImageTag,
