@@ -13,6 +13,7 @@ import (
 	"github.com/aws/copilot-cli/internal/pkg/aws/ecr"
 	"github.com/aws/copilot-cli/internal/pkg/deploy"
 	"github.com/aws/copilot-cli/internal/pkg/template"
+	"github.com/aws/copilot-cli/internal/pkg/aws/sessions"
 	"gopkg.in/yaml.v3"
 )
 
@@ -194,7 +195,18 @@ func (c *AppStackConfig) stackSetAdminRoleName() string {
 // StackSet.
 func (c *AppStackConfig) StackSetAdminRoleARN() string {
 	//TODO find a partition-neutral way to construct this ARN
-	return fmt.Sprintf("arn:aws:iam::%s:role/%s", c.AccountID, c.stackSetAdminRoleName())
+	sess, err := sessions.NewProvider().Default()
+	if err != nil {
+		//error here
+	}
+	region := *sess.Config.Region
+	partition := "aws"
+	
+	if region == "cn-north-1" || region == "cn-northwest-1" {
+		partition = "aws-cn"
+	}
+	
+	return fmt.Sprintf("arn:%s:iam::%s:role/%s", partition, c.AccountID, c.stackSetAdminRoleName())
 }
 
 // StackSetExecutionRoleName returns the role name of the role used to actually create

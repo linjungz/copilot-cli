@@ -26,8 +26,8 @@ Resources:
               - sts:AssumeRole
       Path: /
       ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess' # for env ls
-        - 'arn:aws:iam::aws:policy/AWSCloudFormationReadOnlyAccess' # for service package
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMReadOnlyAccess' # for env ls
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AWSCloudFormationReadOnlyAccess' # for service package
       Policies:
         - PolicyName: assume-env-manager
           PolicyDocument:
@@ -35,7 +35,7 @@ Resources:
             Statement:
             {{- range $stage := .Stages}}
             - Effect: Allow
-              Resource: 'arn:aws:iam::{{$stage.AccountID}}:role/{{$.AppName}}-{{$stage.Name}}-EnvManagerRole'
+              Resource: 'arn:${AWS::Partition}:iam::{{$stage.AccountID}}:role/{{$.AppName}}-{{$stage.Name}}-EnvManagerRole'
               Action:
               - sts:AssumeRole
             {{- end }}
@@ -54,7 +54,7 @@ Resources:
               - codebuild:UpdateReport
               - codebuild:BatchPutTestCases
               - codebuild:BatchPutCodeCoverages
-            Resource: !Sub arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/pipeline-{{$.AppName}}-*
+            Resource: !Sub arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/pipeline-{{$.AppName}}-*
           - Effect: Allow
             Action:
               - s3:PutObject
@@ -64,8 +64,8 @@ Resources:
             # that is in the same region as the pipeline.
             # Loop through all the artifact buckets created in the stackset
             Resource:{{range .ArtifactBuckets}}
-              - !Join ['', ['arn:aws:s3:::', '{{.BucketName}}']]
-              - !Join ['', ['arn:aws:s3:::', '{{.BucketName}}', '/*']]{{end}}
+              - !Join ['', ['arn:${AWS::Partition}:s3:::', '{{.BucketName}}']]
+              - !Join ['', ['arn:${AWS::Partition}:s3:::', '{{.BucketName}}', '/*']]{{end}}
           - Effect: Allow
             Action:
               # TODO: scope this down if possible
@@ -82,7 +82,7 @@ Resources:
               - logs:CreateLogGroup
               - logs:CreateLogStream
               - logs:PutLogEvents
-            Resource: arn:aws:logs:*:*:*
+            Resource: arn:${AWS::Partition}:logs:*:*:*
           - Effect: Allow
             Action:
               - ecr:GetAuthorizationToken
@@ -225,13 +225,13 @@ Resources:
               - s3:GetObjectAcl
               {{- end}}
             Resource:{{range .ArtifactBuckets}}
-              - !Join ['', ['arn:aws:s3:::', '{{.BucketName}}']]
-              - !Join ['', ['arn:aws:s3:::', '{{.BucketName}}', '/*']]{{end}}
+              - !Join ['', ['arn:${AWS::Partition}:s3:::', '{{.BucketName}}']]
+              - !Join ['', ['arn:${AWS::Partition}:s3:::', '{{.BucketName}}', '/*']]{{end}}
           - Effect: Allow
             Action:
               - sts:AssumeRole
             Resource:{{range $stage := .Stages}}
-              - arn:aws:iam::{{$stage.AccountID}}:role/{{$.AppName}}-{{$stage.Name}}-EnvManagerRole{{end}}
+              - !Sub arn:${AWS::Partition}:iam::{{$stage.AccountID}}:role/{{$.AppName}}-{{$stage.Name}}-EnvManagerRole{{end}}
       Roles:
         - !Ref PipelineRole
 {{- range $index, $stage := .Stages}}
@@ -381,14 +381,14 @@ Resources:
                 # The ARN of the IAM role (in the env account) that
                 # AWS CloudFormation assumes when it operates on resources
                 # in a stack in an environment account.
-                RoleArn: arn:aws:iam::{{$stage.AccountID}}:role/{{$.AppName}}-{{$stage.Name}}-CFNExecutionRole
+                RoleArn: !Sub arn:${AWS::Partition}:iam::{{$stage.AccountID}}:role/{{$.AppName}}-{{$stage.Name}}-CFNExecutionRole
               InputArtifacts:
                 - Name: BuildOutput
               RunOrder: 2
               # The ARN of the environment manager IAM role (in the env
               # account) that performs the declared action. This is assumed
               # through the roleArn for the pipeline.
-              RoleArn: arn:aws:iam::{{$stage.AccountID}}:role/{{$.AppName}}-{{$stage.Name}}-EnvManagerRole{{end}}{{if $stage.TestCommands}}
+              RoleArn: !Sub arn:${AWS::Partition}:iam::{{$stage.AccountID}}:role/{{$.AppName}}-{{$stage.Name}}-EnvManagerRole{{end}}{{if $stage.TestCommands}}
             - Name: TestCommands
               ActionTypeId:
                 Category: Test

@@ -14,6 +14,7 @@ import (
 	"github.com/aws/copilot-cli/internal/pkg/config"
 	"github.com/aws/copilot-cli/internal/pkg/deploy"
 	"github.com/aws/copilot-cli/internal/pkg/template"
+	"github.com/aws/copilot-cli/internal/pkg/aws/sessions"
 )
 
 type envReadParser interface {
@@ -148,7 +149,20 @@ func (e *EnvStackConfig) dnsDelegationRole() string {
 	if err != nil {
 		return ""
 	}
-	return fmt.Sprintf("arn:aws:iam::%s:role/%s", appRole.AccountID, dnsDelegationRoleName(e.in.AppName))
+
+	//TODO find a partition-neutral way to construct this ARN
+	sess, err := sessions.NewProvider().Default()
+	if err != nil {
+		//error here
+	}
+	region := *sess.Config.Region
+	partition := "aws"
+	
+	if region == "cn-north-1" || region == "cn-northwest-1" {
+		partition = "aws-cn"
+	}
+
+	return fmt.Sprintf("arn:%s:iam::%s:role/%s", partition, appRole.AccountID, dnsDelegationRoleName(e.in.AppName))
 }
 
 // StackName returns the name of the CloudFormation stack (based on the app and env names).

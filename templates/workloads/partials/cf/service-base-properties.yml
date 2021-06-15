@@ -10,9 +10,9 @@ DesiredCount: !GetAtt DynamicDesiredCountAction.DesiredCount
 DesiredCount: !Ref TaskCount
 {{- end}}
 DeploymentConfiguration:
-  DeploymentCircuitBreaker:
-    Enable: true
-    Rollback: true
+  # DeploymentCircuitBreaker:  is not supported by Cfn in China region 
+  #   Enable: true
+  #   Rollback: true
   MinimumHealthyPercent: 100
   MaximumPercent: 200
 PropagateTags: SERVICE
