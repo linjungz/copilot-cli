@@ -49,18 +49,6 @@ func (s STS) Get() (Caller, error) {
 		return Caller{}, fmt.Errorf("parse caller arn: %w", err)
 	}
 
-	//TODO find a partition-neutral way to construct this ARN
-	sess, err := sessions.NewProvider().Default()
-	if err != nil {
-		//error here
-	}
-	region := *sess.Config.Region
-	partition := "aws"
-	
-	if region == "cn-north-1" || region == "cn-northwest-1" {
-		partition = "aws-cn"
-	}
-
 	return Caller{
 		RootUserARN: fmt.Sprintf("arn:%s:iam::%s:root", parsedARN.Partition, aws.StringValue(out.Account)),
 		Account:     aws.StringValue(out.Account),
