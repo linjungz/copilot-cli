@@ -81,7 +81,7 @@ Resources:
               Service: ecs-tasks.amazonaws.com
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
-        - 'arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
   DefaultTaskRole:
     Metadata:
       'aws:copilot:description': 'An IAM Role for the task to make AWS API calls on your behalf. Policies are required by ECS Exec'

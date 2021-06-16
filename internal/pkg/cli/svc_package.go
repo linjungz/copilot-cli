@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/copilot-cli/internal/pkg/exec"
 
 	"github.com/aws/copilot-cli/internal/pkg/deploy"
@@ -267,8 +268,13 @@ func (o *packageSvcOpts) getSvcTemplates(env *config.Environment) (*svcCfnTempla
 	if err != nil {
 		return nil, err
 	}
+	partition, ok := endpoints.PartitionForRegion(endpoints.DefaultPartitions(), env.Region)
+	if !ok {
+		return nil, fmt.Errorf("cannot find the partition for region %s", env.Region)
+	}
 	rc := stack.RuntimeConfig{
 		AdditionalTags: app.Tags,
+		Partition:      partition.ID(),
 	}
 	if imgNeedsBuild {
 		resources, err := o.appCFN.GetAppResourcesByRegion(app, env.Region)

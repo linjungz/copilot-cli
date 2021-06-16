@@ -69,6 +69,7 @@ const maxDockerContainerPathLength = 242
 // that is needed to create a CloudFormation stack.
 type RuntimeConfig struct {
 	Image             *ECRImage         // Optional. Image location in an ECR repository.
+	Partition         string            // Partition of the stack resources
 	AddonsTemplateURL string            // Optional. S3 object URL for the addons template.
 	AdditionalTags    map[string]string // AdditionalTags are labels applied to resources in the workload stack.
 }

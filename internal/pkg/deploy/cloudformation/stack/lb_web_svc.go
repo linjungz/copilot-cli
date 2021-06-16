@@ -154,6 +154,7 @@ func (s *LoadBalancedWebService) Template() (string, error) {
 	content, err := s.parser.ParseLoadBalancedWebService(template.WorkloadOpts{
 		Variables:           s.manifest.Variables,
 		Secrets:             s.manifest.Secrets,
+		Partition:           s.rc.Partition,
 		Aliases:             aliases,
 		NestedStack:         outputs,
 		Sidecars:            sidecars,
@@ -164,6 +165,7 @@ func (s *LoadBalancedWebService) Template() (string, error) {
 		DesiredCountOnSpot:  desiredCountOnSpot,
 		ExecuteCommand:      convertExecuteCommand(&s.manifest.ExecuteCommand),
 		WorkloadType:        manifest.LoadBalancedWebServiceType,
+		HealthCheck:         s.manifest.ImageConfig.HealthCheckOpts(),
 		HTTPHealthCheck:     convertHTTPHealthCheck(&s.manifest.HealthCheck),
 		AllowedSourceIps:    s.manifest.AllowedSourceIps,
 		RulePriorityLambda:  rulePriorityLambda.String(),

@@ -149,20 +149,7 @@ func (e *EnvStackConfig) dnsDelegationRole() string {
 	if err != nil {
 		return ""
 	}
-
-	//TODO find a partition-neutral way to construct this ARN
-	sess, err := sessions.NewProvider().Default()
-	if err != nil {
-		//error here
-	}
-	region := *sess.Config.Region
-	partition := "aws"
-	
-	if region == "cn-north-1" || region == "cn-northwest-1" {
-		partition = "aws-cn"
-	}
-
-	return fmt.Sprintf("arn:%s:iam::%s:role/%s", partition, appRole.AccountID, dnsDelegationRoleName(e.in.AppName))
+	return fmt.Sprintf("arn:%s:iam::%s:role/%s", appRole.Partition, appRole.AccountID, dnsDelegationRoleName(e.in.AppName))
 }
 
 // StackName returns the name of the CloudFormation stack (based on the app and env names).

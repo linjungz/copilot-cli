@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/copilot-cli/internal/pkg/addon"
 	"github.com/aws/copilot-cli/internal/pkg/deploy"
 	"github.com/aws/copilot-cli/internal/pkg/deploy/cloudformation/stack/mocks"
@@ -86,6 +87,13 @@ func TestLoadBalancedWebService_StackName(t *testing.T) {
 }
 
 func TestLoadBalancedWebService_Template(t *testing.T) {
+	var overridenContainerHealthCheck = ecs.HealthCheck{
+		Command:     []*string{aws.String("CMD-SHELL"), aws.String("curl -f http://localhost/ || exit 1")},
+		Interval:    aws.Int64(10),
+		StartPeriod: aws.Int64(0),
+		Timeout:     aws.Int64(5),
+		Retries:     aws.Int64(5),
+	}
 	var testLBWebServiceManifest = manifest.NewLoadBalancedWebService(&manifest.LoadBalancedWebServiceProps{
 		WorkloadProps: &manifest.WorkloadProps{
 			Name:       "frontend",
@@ -94,6 +102,9 @@ func TestLoadBalancedWebService_Template(t *testing.T) {
 		Path: "frontend",
 		Port: 80,
 	})
+	testLBWebServiceManifest.ImageConfig.HealthCheck = &manifest.ContainerHealthCheck{
+		Retries: aws.Int(5),
+	}
 	testLBWebServiceManifest.Alias = aws.String("mockAlias")
 	testLBWebServiceManifest.EntryPoint = manifest.EntryPointOverride{
 		String:      nil,
@@ -182,10 +193,12 @@ Outputs:
 				m.EXPECT().Read(desiredCountGeneratorPath).Return(&template.Content{Buffer: bytes.NewBufferString("something")}, nil)
 				m.EXPECT().Read(envControllerPath).Return(&template.Content{Buffer: bytes.NewBufferString("something")}, nil)
 				m.EXPECT().ParseLoadBalancedWebService(template.WorkloadOpts{
+					Partition:    "aws",
 					WorkloadType: manifest.LoadBalancedWebServiceType,
 					HTTPHealthCheck: template.HTTPHealthCheckOpts{
 						HealthCheckPath: "/",
 					},
+					HealthCheck:         &overridenContainerHealthCheck,
 					RulePriorityLambda:  "lambda",
 					DesiredCountLambda:  "something",
 					EnvControllerLambda: "something",
@@ -211,6 +224,7 @@ Outputs:
 				m.EXPECT().Read(desiredCountGeneratorPath).Return(&template.Content{Buffer: bytes.NewBufferString("something")}, nil)
 				m.EXPECT().Read(envControllerPath).Return(&template.Content{Buffer: bytes.NewBufferString("something")}, nil)
 				m.EXPECT().ParseLoadBalancedWebService(template.WorkloadOpts{
+					Partition: "aws",
 					NestedStack: &template.WorkloadNestedStackOpts{
 						StackName:       addon.StackName,
 						VariableOutputs: []string{"Hello"},
@@ -221,6 +235,7 @@ Outputs:
 					HTTPHealthCheck: template.HTTPHealthCheckOpts{
 						HealthCheckPath: "/",
 					},
+					HealthCheck:         &overridenContainerHealthCheck,
 					RulePriorityLambda:  "lambda",
 					DesiredCountLambda:  "something",
 					EnvControllerLambda: "something",
@@ -277,6 +292,7 @@ Outputs:
 						env:  testEnvName,
 						app:  testAppName,
 						rc: RuntimeConfig{
+							Partition: "aws",
 							Image: &ECRImage{
 								RepoURL:  testImageRepoURL,
 								ImageTag: testImageTag,

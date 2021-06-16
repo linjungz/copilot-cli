@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"golang.org/x/mod/semver"
 
 	"github.com/aws/copilot-cli/internal/pkg/deploy"
@@ -383,11 +384,17 @@ func (o *deploySvcOpts) manifest() (interface{}, error) {
 }
 
 func (o *deploySvcOpts) runtimeConfig(addonsURL string) (*stack.RuntimeConfig, error) {
+	partition, ok := endpoints.PartitionForRegion(endpoints.DefaultPartitions(), o.targetEnvironment.Region)
+	if !ok {
+		return nil, fmt.Errorf("cannot find the partition for region %s", o.targetEnvironment.Region)
+	}
+	rc := stack.RuntimeConfig{
+		AddonsTemplateURL: addonsURL,
+		AdditionalTags:    tags.Merge(o.targetApp.Tags, o.resourceTags),
+		Partition:         partition.ID(),
+	}
 	if !o.buildRequired {
-		return &stack.RuntimeConfig{
-			AddonsTemplateURL: addonsURL,
-			AdditionalTags:    tags.Merge(o.targetApp.Tags, o.resourceTags),
-		}, nil
+		return &rc, nil
 	}
 	resources, err := o.appCFN.GetAppResourcesByRegion(o.targetApp, o.targetEnvironment.Region)
 	if err != nil {
@@ -401,15 +408,12 @@ func (o *deploySvcOpts) runtimeConfig(addonsURL string) (*stack.RuntimeConfig, e
 			appAccountID: o.targetApp.AccountID,
 		}
 	}
-	return &stack.RuntimeConfig{
-		AddonsTemplateURL: addonsURL,
-		AdditionalTags:    tags.Merge(o.targetApp.Tags, o.resourceTags),
-		Image: &stack.ECRImage{
-			RepoURL:  repoURL,
-			ImageTag: o.imageTag,
-			Digest:   o.imageDigest,
-		},
-	}, nil
+	rc.Image = &stack.ECRImage{
+		RepoURL:  repoURL,
+		ImageTag: o.imageTag,
+		Digest:   o.imageDigest,
+	}
+	return &rc, nil
 }
 
 func (o *deploySvcOpts) stackConfiguration(addonsURL string) (cloudformation.StackConfiguration, error) {

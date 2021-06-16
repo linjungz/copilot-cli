@@ -10,9 +10,11 @@ DesiredCount: !GetAtt DynamicDesiredCountAction.DesiredCount
 DesiredCount: !Ref TaskCount
 {{- end}}
 DeploymentConfiguration:
-  # DeploymentCircuitBreaker:  is not supported by Cfn in China region 
-  #   Enable: true
-  #   Rollback: true
+{{- if ne .Partition "aws-cn"}}
+  DeploymentCircuitBreaker:
+    Enable: true
+    Rollback: true
+{{- end}}
   MinimumHealthyPercent: 100
   MaximumPercent: 200
 PropagateTags: SERVICE
